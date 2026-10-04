@@ -124,6 +124,7 @@
 
     const text = document.createElement("div");
     text.className = "note-box";
+
     text.innerHTML = `
       <h3>Um portfólio para folhear.</h3>
       <p>
@@ -134,8 +135,10 @@
 
     const info = document.createElement("div");
     info.className = "note-box";
+
     info.innerHTML = `
       <h3>Como navegar</h3>
+
       <ul class="nav-tips">
         <li>
           <span>1</span>
@@ -189,13 +192,13 @@
 
     if (names.length === 0) {
       const empty = document.createElement("div");
+
       empty.className = "note-box";
 
       empty.innerHTML = `
         <h3>Nenhuma galeria encontrada.</h3>
         <p>
-          Adicione pastas com imagens dentro de
-          <strong>imagens/</strong>.
+          Adicione pastas com imagens dentro de <strong>imagens/</strong>.
         </p>
       `;
 
@@ -204,6 +207,7 @@
 
     names.forEach((name, index) => {
       const button = document.createElement("button");
+
       button.type = "button";
       button.className = "summary-card";
 
@@ -216,10 +220,9 @@
 
       const target = sectionStartIndex[name];
 
-      const pageNumber =
-        Number.isInteger(target)
-          ? target + 1
-          : "—";
+      const pageNumber = Number.isInteger(target)
+        ? target + 1
+        : "—";
 
       const pageMeta = document.createElement("span");
       pageMeta.className = "summary-page";
@@ -231,6 +234,7 @@
       heading.textContent = formatName(name);
 
       const meta = document.createElement("p");
+
       meta.textContent =
         `${galleries[name].length} ${
           galleries[name].length === 1
@@ -422,19 +426,13 @@
         </li>
 
         <li>
-          <a
-            href="#"
-            aria-label="Instagram"
-          >
+          <a href="#" aria-label="Instagram">
             Instagram
           </a>
         </li>
 
         <li>
-          <a
-            href="#"
-            aria-label="LinkedIn"
-          >
+          <a href="#" aria-label="LinkedIn">
             LinkedIn
           </a>
         </li>
@@ -462,13 +460,10 @@
     alt = "",
     trigger = null
   ) {
-    if (!lightbox || !lightboxImage) {
-      return;
-    }
+    if (!lightbox || !lightboxImage) return;
 
     lastFocusedElement =
-      trigger ||
-      document.activeElement;
+      trigger || document.activeElement;
 
     lightboxImage.src = src;
     lightboxImage.alt = alt;
@@ -622,6 +617,7 @@
 
     constructedPages.forEach(
       (page, index) => {
+
         page.dataset.index =
           String(index);
 
@@ -836,9 +832,7 @@
     const page =
       pages[currentIndex];
 
-    if (!page) {
-      return;
-    }
+    if (!page) return;
 
     if (index < previousIndex) {
 
@@ -893,70 +887,61 @@
     );
   }
 
-  /*
-   * ==============================
-   * SWIPE / ARRASTAR
-   * ==============================
-   */
+  function canStartDrag(target) {
 
-  function beginDrag(event) {
+    /*
+     * Fotos também são botões.
+     * No mobile o swipe precisa poder
+     * começar em cima delas.
+     */
+
+    const photoCard =
+      target.closest?.(
+        ".photo-card"
+      );
+
+    return (
+      !isInteractiveTarget(target) ||
+      Boolean(photoCard)
+    );
+  }
+
+  function startDragAt(
+    clientX,
+    clientY,
+    target,
+    sourceId = null
+  ) {
+
     if (
       lightbox?.classList.contains(
         "is-open"
       )
     ) {
-      return;
+      return false;
     }
 
-    if (
-      event.button !== undefined &&
-      event.button !== 0
-    ) {
-      return;
-    }
-
-    /*
-     * CORREÇÃO IMPORTANTE:
-     *
-     * No celular, permite iniciar
-     * o swipe mesmo em cima de uma
-     * foto.
-     *
-     * Antes a foto era um <button>
-     * e acabava bloqueando o gesto.
-     */
-
-    const photoCard =
-      event.target.closest?.(
-        ".photo-card"
-      );
-
-    if (
-      isInteractiveTarget(
-        event.target
-      ) &&
-      !photoCard
-    ) {
-      return;
+    if (!canStartDrag(target)) {
+      return false;
     }
 
     const currentPage =
       pages[currentIndex];
 
     if (!currentPage) {
-      return;
+      return false;
     }
 
     dragging = true;
 
     pointerId =
-      event.pointerId;
+      sourceId;
 
     startX =
-      event.clientX;
+      clientX;
 
     startY =
-      event.clientY;
+      clientY;
 
     dragX = 0;
     dragY = 0;
@@ -965,58 +950,40 @@
       "is-dragging"
     );
 
-    /*
-     * Captura o pointer para que o
-     * gesto continue sendo recebido
-     * mesmo se o dedo sair um pouco
-     * da área do livro.
-     */
-
-    if (
-      book.setPointerCapture &&
-      pointerId !== undefined
-    ) {
-      try {
-
-        book.setPointerCapture(
-          pointerId
-        );
-
-      } catch (_) {
-
-        /*
-         * Alguns navegadores móveis
-         * podem rejeitar a captura.
-         * O gesto continua funcionando.
-         */
-
-      }
-    }
+    return true;
   }
 
-  function moveDrag(event) {
+  function updateDragAt(
+    clientX,
+    clientY,
+    event
+  ) {
     if (!dragging) {
       return;
     }
 
     dragX =
-      event.clientX - startX;
+      clientX - startX;
 
     dragY =
-      event.clientY - startY;
+      clientY - startY;
+
+    const absX =
+      Math.abs(dragX);
+
+    const absY =
+      Math.abs(dragY);
 
     /*
-     * Se o movimento for claramente
-     * vertical, abandona o swipe do
-     * caderno e deixa o navegador
-     * fazer o scroll normalmente.
+     * Movimento claramente vertical:
+     * libera a rolagem da página.
      */
 
     if (
-      Math.abs(dragY) >
+      absY >
         VERTICAL_CANCEL_THRESHOLD &&
-      Math.abs(dragY) >
-        Math.abs(dragX)
+      absY >
+        absX * 1.08
     ) {
       cancelDrag();
       return;
@@ -1030,22 +997,22 @@
     }
 
     /*
-     * Só bloqueia o movimento padrão
-     * quando ficou evidente que o
-     * usuário está arrastando
-     * horizontalmente.
+     * Quando o movimento fica horizontal
+     * o navegador deixa de controlar o
+     * gesto.
      */
 
     if (
-      Math.abs(dragX) > 8 &&
-      event.cancelable
+      absX > 8 &&
+      absX > absY * 1.02 &&
+      event?.cancelable
     ) {
       event.preventDefault();
     }
 
     /*
-     * PRÓXIMA PÁGINA
-     * Arrastando para esquerda.
+     * Arrastando para esquerda:
+     * próxima página.
      */
 
     if (
@@ -1062,8 +1029,7 @@
 
       const progress =
         Math.min(
-          Math.abs(dragX) /
-          width,
+          absX / width,
           1
         );
 
@@ -1085,8 +1051,8 @@
     }
 
     /*
-     * PÁGINA ANTERIOR
-     * Arrastando para direita.
+     * Arrastando para direita:
+     * página anterior.
      */
 
     if (
@@ -1114,73 +1080,25 @@
     }
   }
 
-  function cancelDrag() {
+  function finishDrag() {
     if (!dragging) {
       return;
     }
-
-    const currentPage =
-      pages[currentIndex];
-
-    currentPage?.classList.remove(
-      "is-dragging"
-    );
-
-    if (currentPage) {
-
-      currentPage.style.transform =
-        "";
-
-      currentPage.style.setProperty(
-        "--rotate",
-        "0deg"
-      );
-
-      currentPage.style.setProperty(
-        "--fold-opacity",
-        "0"
-      );
-    }
-
-    dragging = false;
-    pointerId = null;
-
-    startX = 0;
-    startY = 0;
-
-    dragX = 0;
-    dragY = 0;
-  }
-
-  function endDrag() {
-    if (!dragging) {
-      return;
-    }
-
-    /*
-     * Confirma que a intenção do gesto
-     * foi horizontal.
-     */
 
     const horizontalIntent =
       Math.abs(dragX) >
-      Math.abs(dragY) * 1.15;
-
-    /*
-     * Em telas pequenas a distância
-     * necessária é reduzida.
-     */
+      Math.abs(dragY) * 1.05;
 
     const swipeThreshold =
       Math.min(
         DRAG_THRESHOLD,
         Math.max(
-          34,
+          28,
           Math.round(
             Math.max(
               book.clientWidth,
               1
-            ) * 0.12
+            ) * 0.08
           )
         )
       );
@@ -1194,17 +1112,17 @@
       dragX >= swipeThreshold;
 
     /*
-     * Impede o navegador de interpretar
-     * o término do swipe sobre uma foto
-     * como um click.
+     * Evita abrir a foto depois
+     * de terminar o swipe.
      */
 
     if (
       shouldGoNext ||
-      shouldGoBack
+      shouldGoBack ||
+      Math.abs(dragX) > 12
     ) {
       suppressClickUntil =
-        Date.now() + 450;
+        Date.now() + 500;
     }
 
     dragging = false;
@@ -1252,14 +1170,240 @@
   }
 
   /*
-   * MUITO IMPORTANTE NO MOBILE:
+   * POINTER
+   * Apenas mouse/caneta.
+   */
+
+  function beginDrag(event) {
+
+    /*
+     * Toques de dedo ficam por conta
+     * dos eventos TOUCH abaixo.
+     */
+
+    if (
+      event.pointerType === "touch"
+    ) {
+      return;
+    }
+
+    if (
+      event.button !== undefined &&
+      event.button !== 0
+    ) {
+      return;
+    }
+
+    if (
+      !startDragAt(
+        event.clientX,
+        event.clientY,
+        event.target,
+        event.pointerId
+      )
+    ) {
+      return;
+    }
+
+    if (
+      book.setPointerCapture &&
+      event.pointerId !== undefined
+    ) {
+      try {
+
+        book.setPointerCapture(
+          event.pointerId
+        );
+
+      } catch (_) {
+
+        /*
+         * Apenas melhoria para
+         * mouse/caneta.
+         */
+
+      }
+    }
+  }
+
+  function moveDrag(event) {
+    if (
+      event.pointerType === "touch"
+    ) {
+      return;
+    }
+
+    updateDragAt(
+      event.clientX,
+      event.clientY,
+      event
+    );
+  }
+
+  function cancelDrag(event = null) {
+
+    if (
+      event?.pointerType === "touch"
+    ) {
+      return;
+    }
+
+    if (!dragging) {
+      return;
+    }
+
+    const currentPage =
+      pages[currentIndex];
+
+    currentPage?.classList.remove(
+      "is-dragging"
+    );
+
+    if (currentPage) {
+
+      currentPage.style.transform =
+        "";
+
+      currentPage.style.setProperty(
+        "--rotate",
+        "0deg"
+      );
+
+      currentPage.style.setProperty(
+        "--fold-opacity",
+        "0"
+      );
+    }
+
+    dragging = false;
+    pointerId = null;
+
+    startX = 0;
+    startY = 0;
+
+    dragX = 0;
+    dragY = 0;
+  }
+
+  function endDrag(event = null) {
+
+    if (
+      event?.pointerType === "touch"
+    ) {
+      return;
+    }
+
+    finishDrag();
+  }
+
+  /*
+   * =====================================
+   * TOUCH NATIVO PARA CELULAR
+   * =====================================
    *
-   * pan-y:
-   * o navegador continua podendo
-   * fazer scroll vertical.
+   * Isso é importante principalmente
+   * para Safari/iPhone e WebViews.
+   */
+
+  function beginTouchDrag(event) {
+
+    if (
+      event.touches.length !== 1
+    ) {
+      return;
+    }
+
+    const touch =
+      event.touches[0];
+
+    startDragAt(
+      touch.clientX,
+      touch.clientY,
+      event.target,
+      "touch"
+    );
+  }
+
+  function moveTouchDrag(event) {
+
+    if (
+      !dragging ||
+      pointerId !== "touch" ||
+      event.touches.length !== 1
+    ) {
+      return;
+    }
+
+    const touch =
+      event.touches[0];
+
+    updateDragAt(
+      touch.clientX,
+      touch.clientY,
+      event
+    );
+  }
+
+  function endTouchDrag() {
+
+    if (
+      !dragging ||
+      pointerId !== "touch"
+    ) {
+      return;
+    }
+
+    finishDrag();
+  }
+
+  function cancelTouchDrag() {
+
+    if (
+      !dragging ||
+      pointerId !== "touch"
+    ) {
+      return;
+    }
+
+    const currentPage =
+      pages[currentIndex];
+
+    currentPage?.classList.remove(
+      "is-dragging"
+    );
+
+    if (currentPage) {
+
+      currentPage.style.transform =
+        "";
+
+      currentPage.style.setProperty(
+        "--rotate",
+        "0deg"
+      );
+
+      currentPage.style.setProperty(
+        "--fold-opacity",
+        "0"
+      );
+    }
+
+    dragging = false;
+    pointerId = null;
+
+    startX = 0;
+    startY = 0;
+
+    dragX = 0;
+    dragY = 0;
+  }
+
+  /*
+   * No mobile:
    *
-   * O movimento horizontal fica
-   * disponível para o nosso JS.
+   * pan-y permite scroll vertical,
+   * enquanto o JS assume o movimento
+   * horizontal.
    */
 
   book.style.touchAction =
@@ -1268,10 +1412,11 @@
   book.style.overscrollBehaviorX =
     "contain";
 
+  book.style.webkitUserSelect =
+    "none";
+
   /*
-   * ==============================
    * BOTÕES
-   * ==============================
    */
 
   nextBtn.addEventListener(
@@ -1295,9 +1440,8 @@
   );
 
   /*
-   * ==============================
-   * EVENTOS DE SWIPE
-   * ==============================
+   * POINTER EVENTS
+   * mouse/caneta
    */
 
   book.addEventListener(
@@ -1337,9 +1481,44 @@
   );
 
   /*
-   * ==============================
-   * MODAL / LIGHTBOX
-   * ==============================
+   * TOUCH EVENTS
+   * celular/tablet
+   */
+
+  book.addEventListener(
+    "touchstart",
+    beginTouchDrag,
+    {
+      passive: true
+    }
+  );
+
+  book.addEventListener(
+    "touchmove",
+    moveTouchDrag,
+    {
+      passive: false
+    }
+  );
+
+  book.addEventListener(
+    "touchend",
+    endTouchDrag,
+    {
+      passive: true
+    }
+  );
+
+  book.addEventListener(
+    "touchcancel",
+    cancelTouchDrag,
+    {
+      passive: true
+    }
+  );
+
+  /*
+   * LIGHTBOX
    */
 
   lightboxClose?.addEventListener(
@@ -1347,8 +1526,8 @@
     event => {
 
       event.stopPropagation();
-      closeLightbox();
 
+      closeLightbox();
     }
   );
 
@@ -1368,9 +1547,7 @@
   );
 
   /*
-   * ==============================
    * TECLADO
-   * ==============================
    */
 
   document.addEventListener(
@@ -1393,12 +1570,9 @@
         )
       ) {
 
-        /*
-         * Mantém o foco preso
-         * no botão de fechar.
-         */
-
-        if (event.key === "Tab") {
+        if (
+          event.key === "Tab"
+        ) {
 
           event.preventDefault();
 
@@ -1409,19 +1583,15 @@
       }
 
       if (
-        event.key ===
-          "ArrowRight" ||
-        event.key ===
-          "PageDown"
+        event.key === "ArrowRight" ||
+        event.key === "PageDown"
       ) {
         nextPage();
       }
 
       if (
-        event.key ===
-          "ArrowLeft" ||
-        event.key ===
-          "PageUp"
+        event.key === "ArrowLeft" ||
+        event.key === "PageUp"
       ) {
         previousPage();
       }
@@ -1433,10 +1603,6 @@
       }
     }
   );
-
-  /*
-   * MONTA O CADERNO
-   */
 
   buildBook();
 
