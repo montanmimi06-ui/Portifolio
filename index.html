@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#18130f">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="Portfólio visual em formato de caderno interativo.">
+  <title>Meu Portfólio — Caderno Criativo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="scene">
+    <section class="portfolio-shell" aria-label="Portfólio em formato de caderno interativo">
+      <div class="desk-glow desk-glow-one" aria-hidden="true"></div>
+      <div class="desk-glow desk-glow-two" aria-hidden="true"></div>
+      <div class="desk-shadow" aria-hidden="true"></div>
+
+      <div class="notebook">
+        <div class="spiral" aria-hidden="true"></div>
+
+        <header class="book-topbar">
+          <div class="book-identity" aria-hidden="true">
+            <span class="identity-dot"></span>
+            <span>PORTFÓLIO / CADERNO</span>
+          </div>
+
+          <div class="book-actions">
+            <button id="homeBtn" class="utility-button" type="button" aria-label="Ir para a capa" title="Capa">
+              <span aria-hidden="true">⌂</span>
+            </button>
+            <button id="summaryBtn" class="utility-button utility-button-wide" type="button" aria-label="Ir para o sumário">
+              Sumário
+            </button>
+            <button id="prevBtn" class="nav-button" type="button" aria-label="Página anterior">
+              <span aria-hidden="true">←</span>
+            </button>
+
+            <div class="page-counter" aria-label="Contador de páginas">
+              <span id="currentPage">1</span>
+              <span class="page-counter-separator">/</span>
+              <span id="totalPages">1</span>
+            </div>
+
+            <button id="nextBtn" class="nav-button" type="button" aria-label="Próxima página">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </header>
+
+        <div class="progress-track" aria-hidden="true">
+          <span id="progressFill" class="progress-fill"></span>
+        </div>
+
+        <div id="book" class="book" aria-live="polite">
+          <!-- As páginas são criadas pelo JavaScript -->
+        </div>
+
+        <div class="book-footer">
+          <p id="pageLabel" class="page-label">Capa</p>
+          <p class="gesture-hint">
+            <span class="desktop-hint">Arraste a página, use as setas ou o sumário.</span>
+            <span class="mobile-hint">Deslize para os lados ou toque nas setas.</span>
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Visualização focada da imagem -->
+  <div id="lightbox" class="lightbox" role="dialog" aria-modal="true" aria-label="Visualização ampliada da imagem" aria-hidden="true">
+    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Fechar imagem">
+      <span aria-hidden="true">×</span>
+    </button>
+    <div class="lightbox-stage">
+      <img id="lightboxImage" class="lightbox-image" src="" alt="">
+    </div>
+  </div>
+
+  <!-- Gerado automaticamente a partir das pastas dentro de imagens/ -->
+  <script src="galerias.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
